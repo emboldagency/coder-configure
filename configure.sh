@@ -1,9 +1,12 @@
 #!/bin/bash
 
 echo "🚀 Configuring coder..."
+echo
 
 if [ ! -d "/home/embold/.ssh" ]; then
     echo "🔧 Setting up SSH..."
+    echo
+
     rsync -a --ignore-existing /coder/conf/.ssh /home/embold
     # Save GitHub's current keys from the API
     touch ~/.ssh/known_hosts
@@ -29,21 +32,30 @@ if [ ! -d "/home/embold/.ssh" ]; then
     git config --global gpg.format ssh
     git config --global commit.gpgsign true
     git config --global user.signingkey ~/.ssh/coder
+
+    echo
 fi
 
 echo "⬇️ Pulling zshrc-base as /.zshrc-initial"
+echo
 sudo mkdir /.zshrc-initial &&
     sudo chown embold:embold /.zshrc-initial &&
     git clone git@github.com:emboldagency/zshrc-base.git /.zshrc-initial
+echo
 
 echo "➕ Installing Ruby gems..."
+echo
 mkdir -p $GEM_HOME \
     && gem install colorls /coder/pulsar-*.gem --conservative
 
-echo "🧐 Getting dotfiles URL..."
 if [ -z $DOTFILES_URL]; then
+    echo "🧐 Getting dotfiles URL..."
+    echo
+
     # Print a deprecation warning letting the user know that they should use the coder param
     echo "⚠️ DOTFILES_URL is not set. Fetching from the staging API is deprecated. Please fill in the dotfiles_url coder parameter instead."
+    echo
+
     # Get dotfiles repo
     if [ ! -f /home/embold/.config/embold-api/dotfiles.json ]; then
         mkdir -p /home/embold/.config/embold-api
@@ -53,33 +65,51 @@ if [ -z $DOTFILES_URL]; then
     fi
 
     DOTFILES_URL=$(jq -re '.repo' '/home/embold/.config/embold-api/dotfiles.json')
+
+    echo
 fi
 
 if [ -n "$DOTFILES_URL" ]; then
-    echo "Installing dotfiles from $DOTFILES_URL"
+    echo "➕ Installing dotfiles from $DOTFILES_URL"
+    echo
+
     coder dotfiles -y "$DOTFILES_URL"
+
+    echo
 fi
 
-echo "➕ Installing lazygit..."
 if ! command -v lazygit &>/dev/null; then
+    echo "➕ Installing lazygit..."
+    echo
+
     LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
     curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
     tar xf lazygit.tar.gz lazygit
     sudo install lazygit /usr/local/bin
     rm lazygit.tar.gz
+
+    echo
 fi
 
-echo "➕ Installing browsersync..."
 if [ ! -d "/home/embold/browsersync" ]; then
+    echo "➕ Installing browsersync..."
+    echo
+
     git clone git@github.com:emboldagency/backend-browsersync.git /home/embold/browsersync
+
+    echo
 fi
 
 echo "➕ Installing zoxide..."
+echo
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh)" "bash" --unattended >/dev/null 2>&1
+echo
 
 echo "➕ Installing micro..."
+echo
 curl https://getmic.ro | bash
 sudo mv micro /usr/bin
+echo
 
 # Who are we? ^_~
 embold=H4sIAAAAAAAAA52SMQ7DMAhFd5+CqWPv0itkyFDJErbk+h+/wcTGtM7Q/iUKmCf4QLRWNW0XT5YKV4k660cggJtFdmAAifgPIJCBJ0Q5vwQPA6YBtH6TpUXJZYIAlHkiZ6BN/Piw4BM4qAGdpMzO8x5G61TLvzvs32DNdTDy5GF/bsuZ/j1QY6F11hZjzAXQVy2B6uIBlGCzjs6RCx3MeeJUnfWjWpMuw+IhZQWRjb27iuiXmegSeGz5PvZb5AQLUcl7G2XjGNmfIEde3V7lWLfzZXgDYVxqC3sDAAA=
